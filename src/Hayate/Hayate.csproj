@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+	  <!-- ▼ここから下を追記する▼ -->
+	  <PublishSingleFile>true</PublishSingleFile>
+	  <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+	  <!-- （前回のネイティブDLLをまとめる設定も一緒に入れるならここ） -->
+	  <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+	  <!-- ▲ここまで▲ -->
+	  <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>Hayate</AssemblyName>
+    <RootNamespace>Hayate</RootNamespace>
+    <Platforms>AnyCPU;x64</Platforms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <Version>1.0.0</Version>
+    <Product>Hayate</Product>
+    <Description>超高速・安全なファイルコピーツール</Description>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="app.ico" />
+  </ItemGroup>
+
+</Project>

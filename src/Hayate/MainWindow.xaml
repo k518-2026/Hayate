@@ -1,0 +1,160 @@
+<Window x:Class="Hayate.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Hayate.ViewModels"
+        Title="Hayate — 超高速・安全ファイルコピー"
+        Height="760" Width="1060" MinHeight="620" MinWidth="900"
+        Background="{StaticResource Bg}"
+        AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
+    <Grid Margin="14">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="14"/>
+            <ColumnDefinition Width="280"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="180"/>
+        </Grid.RowDefinitions>
+
+        <!-- ヘッダー -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,0,0,12">
+            <TextBlock Text="Hayate" FontSize="21" FontWeight="Bold" Foreground="{StaticResource Accent}"/>
+            <TextBlock Text="一時ファイル経由で書き込み、全バイト照合してから置き換えます"
+                       Margin="14,4,0,0" Style="{StaticResource Caption}" VerticalAlignment="Bottom"/>
+        </StackPanel>
+
+        <!-- コピー元 -->
+        <Border Grid.Row="1" Grid.Column="0" Background="{StaticResource Panel}" CornerRadius="8" Padding="12">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="コピー元（ウィンドウにドラッグ＆ドロップでも追加できます）"
+                           Style="{StaticResource SectionTitle}"/>
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,10,0,0">
+                    <Button Content="ファイルを追加" Command="{Binding AddFilesCommand}"/>
+                    <Button Content="フォルダーを追加" Command="{Binding AddFolderCommand}"/>
+                    <Button Content="選択を削除" Command="{Binding RemoveSelectedCommand}"
+                            CommandParameter="{Binding SelectedItems, ElementName=SourceList}"/>
+                    <Button Content="全部消す" Command="{Binding ClearSourcesCommand}"/>
+                </StackPanel>
+                <ListBox x:Name="SourceList" ItemsSource="{Binding Sources}" SelectionMode="Extended"/>
+            </DockPanel>
+        </Border>
+
+        <!-- 設定 -->
+        <Border Grid.Row="1" Grid.Column="2" Background="{StaticResource Panel}" CornerRadius="8" Padding="12">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel IsEnabled="{Binding IsIdle}">
+                    <TextBlock Text="設定" Style="{StaticResource SectionTitle}"/>
+
+                    <TextBlock Text="動作" Style="{StaticResource Caption}"/>
+                    <ComboBox ItemsSource="{Binding ModeNames}" SelectedIndex="{Binding ModeIndex}" Margin="0,0,0,8"/>
+
+                    <TextBlock Text="同名ファイルがあるとき" Style="{StaticResource Caption}"/>
+                    <ComboBox ItemsSource="{Binding ConflictNames}" SelectedIndex="{Binding ConflictIndex}" Margin="0,0,0,8"/>
+
+                    <TextBlock Text="検証" Style="{StaticResource Caption}"/>
+                    <ComboBox ItemsSource="{Binding VerifyNames}" SelectedIndex="{Binding VerifyIndex}" Margin="0,0,0,8"/>
+
+                    <TextBlock Text="同時処理ファイル数" Style="{StaticResource Caption}"/>
+                    <ComboBox ItemsSource="{Binding ParallelNames}" SelectedIndex="{Binding ParallelIndex}" Margin="0,0,0,8"/>
+
+                    <TextBlock Text="バッファサイズ" Style="{StaticResource Caption}"/>
+                    <ComboBox ItemsSource="{Binding BufferNames}" SelectedIndex="{Binding BufferIndex}" Margin="0,0,0,8"/>
+
+                    <TextBlock Text="除外パターン（例: *.tmp;~$*）" Style="{StaticResource Caption}"/>
+                    <TextBox Text="{Binding ExcludePatterns, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10"/>
+
+                    <CheckBox Content="更新日時を引き継ぐ" IsChecked="{Binding PreserveTimestamps}"/>
+                    <CheckBox Content="ファイル属性を引き継ぐ" IsChecked="{Binding PreserveAttributes}"/>
+                    <CheckBox Content="閉じる前にディスクへ確実に書き出す" IsChecked="{Binding FlushToDisk}"/>
+                    <CheckBox Content="同一内容のファイルは処理しない" IsChecked="{Binding SkipIdentical}"/>
+                    <CheckBox Content="中断後に再開できるよう記録する" IsChecked="{Binding UseJournal}"/>
+                    <CheckBox Content="開始前に空き容量を確認する" IsChecked="{Binding CheckFreeSpace}"/>
+                    <CheckBox Content="完了したらポップアップで知らせる" IsChecked="{Binding NotifyWithPopup}"/>
+                    <CheckBox Content="完了したらメロディーを鳴らす" IsChecked="{Binding NotifyWithSound}"/>
+                    <CheckBox Content="ドライラン（書き込まず対象だけ確認）" IsChecked="{Binding DryRun}"
+                              Foreground="{StaticResource Warn}"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- コピー先 -->
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="コピー先" Margin="0,0,10,0"/>
+            <TextBox Grid.Column="1" Text="{Binding Destination, UpdateSourceTrigger=PropertyChanged}"
+                     IsEnabled="{Binding IsIdle}"/>
+            <Button Grid.Column="2" Content="参照…" Margin="8,0,0,0"
+                    Command="{Binding BrowseDestinationCommand}" IsEnabled="{Binding IsIdle}"/>
+        </Grid>
+
+        <!-- 進捗と操作 -->
+        <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,12,0,0"
+                Background="{StaticResource Panel}" CornerRadius="8" Padding="12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding StatusText}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding SpeedText}" Margin="16,0,0,0"
+                               Foreground="{StaticResource Ok}" FontWeight="SemiBold"/>
+                    <TextBlock Grid.Column="2" Text="{Binding ElapsedText}" Margin="16,0,0,0"
+                               Foreground="{StaticResource FgDim}"/>
+                </Grid>
+
+                <ProgressBar Grid.Row="1" Value="{Binding OverallPercent}" Maximum="100"/>
+
+                <Grid Grid.Row="2" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding CurrentFileText}"
+                               Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Content="開始" Style="{StaticResource PrimaryButton}"
+                                Command="{Binding StartCommand}" MinWidth="96"/>
+                        <Button Content="{Binding PauseButtonText}" Command="{Binding PauseCommand}" MinWidth="88"/>
+                        <Button Content="中止" Command="{Binding CancelCommand}" MinWidth="72" Margin="0"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- ログ -->
+        <Border Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,12,0,0"
+                Background="{StaticResource Panel}" CornerRadius="8" Padding="12">
+            <DockPanel>
+                <Grid DockPanel.Dock="Top">
+                    <TextBlock Text="ログ" Style="{StaticResource SectionTitle}" HorizontalAlignment="Left"/>
+                    <Button Content="消す" Command="{Binding ClearLogCommand}"
+                            HorizontalAlignment="Right" Padding="10,2" Margin="0,0,0,6"/>
+                </Grid>
+                <ListBox x:Name="LogList" ItemsSource="{Binding LogLines}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>
