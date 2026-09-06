@@ -1,5 +1,8 @@
 # Hayate — 超高速・安全ファイルコピー
 
+実行ファイル
+https://github.com/k518-2026/Hayate/releases
+
 Windows デスクトップアプリ（WPF / C# / .NET 8）。Visual Studio で `Hayate.sln` を開いて F5 で実行できます。外部パッケージへの依存はありません（NuGet 復元不要）。
 
 ## 必要なもの
